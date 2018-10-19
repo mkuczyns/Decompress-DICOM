@@ -9,6 +9,7 @@ This project aims to create an easier method of decompressing DICOM images compa
     - gdcm
     - argparse
     - errno
+    - shutil
 3. Compressed DICOM files
 
 ## How-to
