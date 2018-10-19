@@ -35,12 +35,11 @@ args = parser.parse_args()
 inputDirectory = args.inputDirectory + "\\"
 
 print ("Starting decompression...\n")
-print (inputDirectory)
 
 # Decompress the DICOM files and save them to a new folder:
 
 # 2. Create a new folder for the decompressed DICOM files
-savePath = inputDirectory + "\\decompressed\\"
+savePath = inputDirectory + "DECOMPRESSED\\"
 
 try:
     os.mkdir(savePath)
@@ -74,87 +73,83 @@ for DICOMfile in os.listdir(inputDirectory):
     #   1. Bone Plus
     #   2. Standard
     #   3. No Calibration Phantom (DFOV)
-    #   4. Default (x2)
-    #   5. Dose Report
-    #   6. Localizers
+    #   4. Default (series # 601)
+    #   5. Default (series # 602)
+    #   6. Dose Report
+    #   7. Localizers
     tag = pydicom.read_file(saveFile)
     seriesDescription = tag[0x0008, 0x103e].value
+    seriesNumber = tag[0x0020, 0x0011].value
 
     # Create a new folder for each series description within and move the current DICOM file
     if (seriesDescription == "Bone Plus"):
-        seriesFilePath = savePath + "Bone Plus\\"
-        try:
-            os.mkdir(seriesFilePath)
-        except OSError as e:
-            if e.errno != errno.EEXIST:     # File already exists error
-                raise
+        seriesFilePath = savePath + "BONE_PLUS\\"
+    
+        # Possible race-condition with creating directories like this...
+        if not os.path.exists(seriesFilePath):
+            os.makedirs(seriesFilePath)
         
-        shutil.move(saveFile, seriesFilePath + ogFilename + "dcm")
+        shutil.move(saveFile, seriesFilePath + ogFilename + ".dcm")
                 
     elif (seriesDescription == "Standard"):
-        seriesFilePath = savePath + "Standard\\"
-        try:
-            os.mkdir(seriesFilePath)
-        except OSError as e:
-            if e.errno != errno.EEXIST:     # File already exists error
-                raise
+        seriesFilePath = savePath + "STANDARD\\"
+
+        if not os.path.exists(seriesFilePath):
+            os.makedirs(seriesFilePath)
                 
-        shutil.move(saveFile, seriesFilePath + ogFilename + "dcm")
+        shutil.move(saveFile, seriesFilePath + ogFilename + ".dcm")
 
-    elif (seriesDescription == "No Calibration Phantom (DFOV)"):
-        seriesFilePath = savePath + "No Calibration Phantom\\"
-        try:
-            os.mkdir(seriesFilePath)
-        except OSError as e:
-            if e.errno != errno.EEXIST:     # File already exists error
-                raise
+    elif (seriesDescription == "no calibration phantom (DFOV)"):
+        seriesFilePath = savePath + "NO_CALIBRATION_PHANTOM\\"
 
-        shutil.move(saveFile, seriesFilePath + ogFilename + "dcm")
+        if not os.path.exists(seriesFilePath):
+            os.makedirs(seriesFilePath)
+
+        shutil.move(saveFile, seriesFilePath + ogFilename + ".dcm")
 
     elif (seriesDescription == "Default"):
-        seriesFilePath = savePath + "Default\\"
-        try:
-            os.mkdir(seriesFilePath)
-        except OSError as e:
-            if e.errno != errno.EEXIST:     # File already exists error
-                raise
+        seriesFilePath = savePath + "DEFAULT\\"
 
-        shutil.move(saveFile, seriesFilePath + ogFilename + "dcm")
+        if not os.path.exists(seriesFilePath):
+            os.makedirs(seriesFilePath)
+
+        if (seriesNumber == 601):
+            path601 = seriesFilePath + "SERIES_601\\"
+
+            if not os.path.exists(path601):
+                os.makedirs(path601)
+            
+            shutil.move(saveFile, path601 + ogFilename + ".dcm")
+
+        elif (seriesNumber == 602):
+            path602 = seriesFilePath + "SERIES_602\\"
+
+            if not os.path.exists(path602):
+                os.makedirs(path602)
+
+            shutil.move(saveFile, path602 + ogFilename + ".dcm")
+
+        else:   
+            print ("WHAT")
+            shutil.move(saveFile, seriesFilePath + ogFilename + ".dcm")
 
     elif (seriesDescription == "Dose Report"):
-        seriesFilePath = savePath + "Dose Report\\"
-        try:
-            os.mkdir(seriesFilePath)
-        except OSError as e:
-            if e.errno != errno.EEXIST:     # File already exists error
-                raise
+        seriesFilePath = savePath + "DOSE_REPORT\\"
 
-        shutil.move(saveFile, seriesFilePath + ogFilename + "dcm")
+        if not os.path.exists(seriesFilePath):
+            os.makedirs(seriesFilePath)
+
+        shutil.move(saveFile, seriesFilePath + ogFilename + ".dcm")
         
     elif  (seriesDescription == "Localizers"):
-        seriesFilePath = savePath + "Localizers\\"
-        try:
-            os.mkdir(seriesFilePath)
-        except OSError as e:
-            if e.errno != errno.EEXIST:     # File already exists error
-                raise
+        seriesFilePath = savePath + "LOCALIZERS\\"
 
-        shutil.move(saveFile, seriesFilePath + ogFilename + "dcm")
+        if not os.path.exists(seriesFilePath):
+            os.makedirs(seriesFilePath)
+
+        shutil.move(saveFile, seriesFilePath + ogFilename + ".dcm")
         
     else:
-        print ("ERROR")
+        print ("ERROR: Series description unknown for image: " + saveFile)
 
-
-''' DEBUGGING:
-
-filename = "00001190" 
-print ("FILE: " + inputDirectory + filename)
-ds = pydicom.dcmread(inputDirectory + filename)
-ds.decompress()
-ds.save_as(savePath + filename + ".dcm")
-
-d = pydicom.read_file(savePath + filename + ".dcm")
-print (d)
-'''
-
-print ("DONE!")
+print ("\nDONE!")
