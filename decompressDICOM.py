@@ -23,18 +23,7 @@ import pydicom
 import os
 import argparse
 import errno
-
-# Switcher for series description:
-def switch(arg):
-    switcher = {
-        1: "Bone Plus",
-        2: "Standard",
-        3: "No Calibration Phantom (DFOV)",
-        4: "Default",
-        5: "Dose Report",
-        6: "Localizers",
-    }
-    return switcher.get(arg, "Invaild series description.")
+import shutil
 
 # DICOM Decompression:
 
@@ -73,13 +62,13 @@ for DICOMfile in os.listdir(inputDirectory):
 
     # Save the file to the correct series folder
     saveFile = savePath + ogFilename + ".dcm"
-
+    
     try:
         ds.save_as(saveFile)
     except OSError as e:
         if e.errno != errno.ENOENT:     # No such file or directory error
             raise
-    
+
     # Get the file's tag and parse out the series description
     # Series description is located at [0x0008, 0x103e] in the tag and can be one of the following:
     #   1. Bone Plus
@@ -91,8 +80,69 @@ for DICOMfile in os.listdir(inputDirectory):
     tag = pydicom.read_file(saveFile)
     seriesDescription = tag[0x0008, 0x103e].value
 
-    switch(seriesDescription)
+    # Create a new folder for each series description within and move the current DICOM file
+    if (seriesDescription == "Bone Plus"):
+        seriesFilePath = savePath + "Bone Plus\\"
+        try:
+            os.mkdir(seriesFilePath)
+        except OSError as e:
+            if e.errno != errno.EEXIST:     # File already exists error
+                raise
+        
+        shutil.move(saveFile, seriesFilePath + ogFilename + "dcm")
+                
+    elif (seriesDescription == "Standard"):
+        seriesFilePath = savePath + "Standard\\"
+        try:
+            os.mkdir(seriesFilePath)
+        except OSError as e:
+            if e.errno != errno.EEXIST:     # File already exists error
+                raise
+                
+        shutil.move(saveFile, seriesFilePath + ogFilename + "dcm")
 
+    elif (seriesDescription == "No Calibration Phantom (DFOV)"):
+        seriesFilePath = savePath + "No Calibration Phantom\\"
+        try:
+            os.mkdir(seriesFilePath)
+        except OSError as e:
+            if e.errno != errno.EEXIST:     # File already exists error
+                raise
+
+        shutil.move(saveFile, seriesFilePath + ogFilename + "dcm")
+
+    elif (seriesDescription == "Default"):
+        seriesFilePath = savePath + "Default\\"
+        try:
+            os.mkdir(seriesFilePath)
+        except OSError as e:
+            if e.errno != errno.EEXIST:     # File already exists error
+                raise
+
+        shutil.move(saveFile, seriesFilePath + ogFilename + "dcm")
+
+    elif (seriesDescription == "Dose Report"):
+        seriesFilePath = savePath + "Dose Report\\"
+        try:
+            os.mkdir(seriesFilePath)
+        except OSError as e:
+            if e.errno != errno.EEXIST:     # File already exists error
+                raise
+
+        shutil.move(saveFile, seriesFilePath + ogFilename + "dcm")
+        
+    elif  (seriesDescription == "Localizers"):
+        seriesFilePath = savePath + "Localizers\\"
+        try:
+            os.mkdir(seriesFilePath)
+        except OSError as e:
+            if e.errno != errno.EEXIST:     # File already exists error
+                raise
+
+        shutil.move(saveFile, seriesFilePath + ogFilename + "dcm")
+        
+    else:
+        print ("ERROR")
 
 
 ''' DEBUGGING:
