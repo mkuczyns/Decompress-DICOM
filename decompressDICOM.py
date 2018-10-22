@@ -5,9 +5,6 @@
 # Created by:   Michael Kuczynski
 # Created on:   2018.10.19
 #
-# Modified by:
-# Modified on:
-#
 # Description: Decompresses compressed DICOM images using pydicom.
 #----------------------------------------------------- 
 #
@@ -36,8 +33,6 @@ inputDirectory = args.inputDirectory + "\\"
 
 print ("Starting decompression...\n")
 
-# Decompress the DICOM files and save them to a new folder:
-
 # 2. Create a new folder for the decompressed DICOM files
 savePath = inputDirectory + "DECOMPRESSED\\"
 
@@ -51,12 +46,6 @@ except OSError as e:
 #       First decompress the file
 #       Next, get the tag of each DICOM image to analyze the series description
 #       Finally, place the decompressed image into the correct series folder
-
-# TO-DO:
-# Chnage the loop format. This should reduce the amount of code and make it more general:
-# Make the loop read in each file's series description, convert it to string, 
-# then check if such a directory exists. If it doesn't, create a new directory based on that string.
-# If it does exist, just move the file to that directory.
 for DICOMfile in os.listdir(inputDirectory):
     # Get the next item in the directory
     ogFilename = os.fsdecode(DICOMfile)
