@@ -90,87 +90,16 @@ for DICOMfile in os.listdir(inputDirectory):
     #   7. Dose Report
     #   8. Localizers
     tag = pydicom.read_file(saveFile)
-    seriesDescription = tag[0x0008, 0x103e].value
+    seriesDescription = str(tag[0x0008, 0x103e].value).upper()
     seriesNumber = tag[0x0020, 0x0011].value
 
-    # Create a new folder for each series description within and move the current DICOM file
-    if (seriesDescription == "Scout"):
-        seriesFilePath = savePath + "SCOUT\\"
-    
-        # Possible race-condition with creating directories like this...
-        # TO-DO: Fix...
-        if not os.path.exists(seriesFilePath):
-            os.makedirs(seriesFilePath)
-        
-        shutil.move(saveFile, seriesFilePath + ogFilename + ".dcm")
+    seriesFilePath = savePath + seriesDescription + "\\" 
 
-    elif (seriesDescription == "Bone Plus"):
-        seriesFilePath = savePath + "BONE_PLUS\\"
-    
-        if not os.path.exists(seriesFilePath):
-            os.makedirs(seriesFilePath)
-        
-        shutil.move(saveFile, seriesFilePath + ogFilename + ".dcm")
-                
-    elif (seriesDescription == "Standard"):
-        seriesFilePath = savePath + "STANDARD\\"
+    # Possible race-condition with creating directories like this...
+    # TO-DO: Fix...
+    if not os.path.exists(seriesFilePath):
+        os.makedirs(seriesFilePath)
 
-        if not os.path.exists(seriesFilePath):
-            os.makedirs(seriesFilePath)
-                
-        shutil.move(saveFile, seriesFilePath + ogFilename + ".dcm")
-
-    elif (seriesDescription == "no calibration phantom (DFOV)"):
-        seriesFilePath = savePath + "NO_CALIBRATION_PHANTOM\\"
-
-        if not os.path.exists(seriesFilePath):
-            os.makedirs(seriesFilePath)
-
-        shutil.move(saveFile, seriesFilePath + ogFilename + ".dcm")
-
-    elif (seriesDescription == "Default"):
-        seriesFilePath = savePath + "DEFAULT\\"
-
-        if not os.path.exists(seriesFilePath):
-            os.makedirs(seriesFilePath)
-
-        if (seriesNumber == 601):
-            path601 = seriesFilePath + "SERIES_601\\"
-
-            if not os.path.exists(path601):
-                os.makedirs(path601)
-            
-            shutil.move(saveFile, path601 + ogFilename + ".dcm")
-
-        elif (seriesNumber == 602):
-            path602 = seriesFilePath + "SERIES_602\\"
-
-            if not os.path.exists(path602):
-                os.makedirs(path602)
-
-            shutil.move(saveFile, path602 + ogFilename + ".dcm")
-
-        else:   
-            print ("WHAT")
-            shutil.move(saveFile, seriesFilePath + ogFilename + ".dcm")
-
-    elif (seriesDescription == "Dose Report"):
-        seriesFilePath = savePath + "DOSE_REPORT\\"
-
-        if not os.path.exists(seriesFilePath):
-            os.makedirs(seriesFilePath)
-
-        shutil.move(saveFile, seriesFilePath + ogFilename + ".dcm")
-        
-    elif  (seriesDescription == "Localizers"):
-        seriesFilePath = savePath + "LOCALIZERS\\"
-
-        if not os.path.exists(seriesFilePath):
-            os.makedirs(seriesFilePath)
-
-        shutil.move(saveFile, seriesFilePath + ogFilename + ".dcm")
-        
-    else:
-        print ("ERROR: Series description unknown for image: " + saveFile)
+    shutil.move(saveFile, seriesFilePath + ogFilename + ".dcm")
 
 print ("\nDONE!")
