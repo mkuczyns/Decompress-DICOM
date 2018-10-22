@@ -13,7 +13,7 @@
 #
 # Requirements:
 #   -Python 2.7, 3.4 or later
-#   -pydicom, GDCM, Pillow, argparse
+#   -pydicom, GDCM, Pillow, argparse, shutil, errno
 #
 # Usage:
 #   decompressDICOM.py DICOM_FOLDER
@@ -51,9 +51,19 @@ except OSError as e:
 #       First decompress the file
 #       Next, get the tag of each DICOM image to analyze the series description
 #       Finally, place the decompressed image into the correct series folder
+
+# TO-DO:
+# Chnage the loop format. This should reduce the amount of code and make it more general:
+# Make the loop read in each file's series description, convert it to string, 
+# then check if such a directory exists. If it doesn't, create a new directory based on that string.
+# If it does exist, just move the file to that directory.
 for DICOMfile in os.listdir(inputDirectory):
-    # Get the next file
+    # Get the next item in the directory
     ogFilename = os.fsdecode(DICOMfile)
+
+    # We need to skip any directories and loop over files only
+    if os.path.isdir(inputDirectory + ogFilename):
+        continue
 
     # Decompress the file
     ds = pydicom.dcmread(inputDirectory + ogFilename)
@@ -66,26 +76,37 @@ for DICOMfile in os.listdir(inputDirectory):
         ds.save_as(saveFile)
     except OSError as e:
         if e.errno != errno.ENOENT:     # No such file or directory error
+            print ("ERROR: No such file or directory named " + saveFile)
             raise
 
     # Get the file's tag and parse out the series description
     # Series description is located at [0x0008, 0x103e] in the tag and can be one of the following:
-    #   1. Bone Plus
-    #   2. Standard
-    #   3. No Calibration Phantom (DFOV)
-    #   4. Default (series # 601)
-    #   5. Default (series # 602)
-    #   6. Dose Report
-    #   7. Localizers
+    #   1. Scout
+    #   2. Bone Plus
+    #   3. Standard
+    #   4. No Calibration Phantom (DFOV)
+    #   5. Default (series # 601)
+    #   6. Default (series # 602)
+    #   7. Dose Report
+    #   8. Localizers
     tag = pydicom.read_file(saveFile)
     seriesDescription = tag[0x0008, 0x103e].value
     seriesNumber = tag[0x0020, 0x0011].value
 
     # Create a new folder for each series description within and move the current DICOM file
-    if (seriesDescription == "Bone Plus"):
-        seriesFilePath = savePath + "BONE_PLUS\\"
+    if (seriesDescription == "Scout"):
+        seriesFilePath = savePath + "SCOUT\\"
     
         # Possible race-condition with creating directories like this...
+        # TO-DO: Fix...
+        if not os.path.exists(seriesFilePath):
+            os.makedirs(seriesFilePath)
+        
+        shutil.move(saveFile, seriesFilePath + ogFilename + ".dcm")
+
+    elif (seriesDescription == "Bone Plus"):
+        seriesFilePath = savePath + "BONE_PLUS\\"
+    
         if not os.path.exists(seriesFilePath):
             os.makedirs(seriesFilePath)
         
